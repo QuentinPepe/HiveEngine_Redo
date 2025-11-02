@@ -12,7 +12,7 @@ namespace hive
     class LogCategory
     {
     public:
-        constexpr explicit LogCategory(const char *name, LogCategory *parentCategory = nullptr) : m_Name(name),
+        constexpr explicit LogCategory(const char *name, const LogCategory *parentCategory = nullptr) : m_Name(name),
             m_ParentCategory(parentCategory)
         {
             if (m_ParentCategory)
@@ -32,7 +32,7 @@ namespace hive
     private:
         const char *m_Name;
         std::string m_FullPath;
-        LogCategory *m_ParentCategory;
+        const LogCategory *m_ParentCategory;
     };
 
     extern const LogCategory LogHiveRoot;
