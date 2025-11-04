@@ -17,7 +17,6 @@ namespace hive
         const char* file,
         int line,
         const char* function,
-        const char* expression,
         const char* message)
     {
         const char* filename = file;
@@ -40,19 +39,19 @@ namespace hive
         if (message && message[0] != '\0')
         {
             std::snprintf(s_AssertMessageBuffer, sizeof(s_AssertMessageBuffer),
-                "Assertion failed: %s\n"
+                "Assertion failed\n"
                 "  File: %s:%d\n"
                 "  Function: %s\n"
                 "  Message: %s",
-                expression, filename, line, function, message);
+                filename, line, function, message);
         }
         else
         {
             std::snprintf(s_AssertMessageBuffer, sizeof(s_AssertMessageBuffer),
-                "Assertion failed: %s\n"
+                "Assertion failed\n"
                 "  File: %s:%d\n"
                 "  Function: %s",
-                expression, filename, line, function);
+                filename, line, function);
         }
 
         #if HIVE_PLATFORM_WINDOWS

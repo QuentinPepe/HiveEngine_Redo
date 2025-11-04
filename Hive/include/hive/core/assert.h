@@ -55,92 +55,94 @@
     #define HIVE_UNLIKELY(x) (x)
 #endif
 
+#include <source_location>
+
 namespace hive
 {
     bool HandleAssertionFailure(
         const char* file,
         int line,
         const char* function,
-        const char* expression,
         const char* message = nullptr);
-}
 
-// HIVE_ASSERT: Debug only, zero cost in release, expr not evaluated in release
+    // Assert: Debug only, zero cost in release, expr not evaluated in release
 #if HIVE_BUILD_DEBUG
-    #define HIVE_ASSERT(expr) \
-        do { \
-            if (HIVE_UNLIKELY(!(expr))) { \
-                ::hive::HandleAssertionFailure(__FILE__, __LINE__, __func__, #expr); \
-            } \
-        } while(0)
-
-    #define HIVE_ASSERT_MSG(expr, msg) \
-        do { \
-            if (HIVE_UNLIKELY(!(expr))) { \
-                ::hive::HandleAssertionFailure(__FILE__, __LINE__, __func__, #expr, msg); \
-            } \
-        } while(0)
+    inline void Assert(
+        bool expr,
+        const char* message = nullptr,
+        const std::source_location& loc = std::source_location::current())
+    {
+        if (HIVE_UNLIKELY(!expr))
+        {
+            HandleAssertionFailure(loc.file_name(), loc.line(), loc.function_name(), message);
+        }
+    }
 #else
-    #define HIVE_ASSERT(expr) ((void)0)
-    #define HIVE_ASSERT_MSG(expr, msg) ((void)0)
+    inline void Assert(bool, const char* = nullptr, const std::source_location& = std::source_location::current()) {}
 #endif
 
-// HIVE_VERIFY: Always evaluates expr (even in release), reports failure in debug only
+    // Verify: Always evaluates expr (even in release), reports failure in debug only
 #if HIVE_BUILD_DEBUG
-    #define HIVE_VERIFY(expr) \
-        do { \
-            if (HIVE_UNLIKELY(!(expr))) { \
-                ::hive::HandleAssertionFailure(__FILE__, __LINE__, __func__, #expr); \
-            } \
-        } while(0)
-
-    #define HIVE_VERIFY_MSG(expr, msg) \
-        do { \
-            if (HIVE_UNLIKELY(!(expr))) { \
-                ::hive::HandleAssertionFailure(__FILE__, __LINE__, __func__, #expr, msg); \
-            } \
-        } while(0)
+    inline bool Verify(
+        bool expr,
+        const char* message = nullptr,
+        const std::source_location& loc = std::source_location::current())
+    {
+        if (HIVE_UNLIKELY(!expr))
+        {
+            HandleAssertionFailure(loc.file_name(), loc.line(), loc.function_name(), message);
+        }
+        return expr;
+    }
 #else
-    #define HIVE_VERIFY(expr) ((void)(expr))
-    #define HIVE_VERIFY_MSG(expr, msg) ((void)(expr))
+    inline bool Verify(bool expr, const char* = nullptr, const std::source_location& = std::source_location::current())
+    {
+        return expr;
+    }
 #endif
 
-// HIVE_CHECK: Always evaluates and reports, even in release (use sparingly)
-#define HIVE_CHECK(expr) \
-    do { \
-        if (HIVE_UNLIKELY(!(expr))) { \
-            ::hive::HandleAssertionFailure(__FILE__, __LINE__, __func__, #expr); \
-        } \
-    } while(0)
+    // Check: Always evaluates and reports, even in release (use sparingly)
+    inline void Check(
+        bool expr,
+        const char* message = nullptr,
+        const std::source_location& loc = std::source_location::current())
+    {
+        if (HIVE_UNLIKELY(!expr))
+        {
+            HandleAssertionFailure(loc.file_name(), loc.line(), loc.function_name(), message);
+        }
+    }
 
-#define HIVE_CHECK_MSG(expr, msg) \
-    do { \
-        if (HIVE_UNLIKELY(!(expr))) { \
-            ::hive::HandleAssertionFailure(__FILE__, __LINE__, __func__, #expr, msg); \
-        } \
-    } while(0)
-
-#define HIVE_STATIC_ASSERT(expr, msg) static_assert(expr, msg)
+    // Unreachable: Marks code paths that should never execute
 #if HIVE_BUILD_DEBUG
-    #define HIVE_UNREACHABLE() \
-        do { \
-            ::hive::HandleAssertionFailure(__FILE__, __LINE__, __func__, "UNREACHABLE CODE", "This code path should never be executed"); \
-            HIVE_DEBUG_BREAK(); \
-        } while(0)
+    [[noreturn]] inline void Unreachable(
+        const std::source_location& loc = std::source_location::current())
+    {
+        HandleAssertionFailure(loc.file_name(), loc.line(), loc.function_name(), "Unreachable code executed");
+        HIVE_DEBUG_BREAK();
+        std::abort();
+    }
 #else
+    [[noreturn]] inline void Unreachable(const std::source_location& = std::source_location::current())
+    {
     #if HIVE_COMPILER_MSVC
-        #define HIVE_UNREACHABLE() __assume(0)
+        __assume(0);
     #elif HIVE_COMPILER_CLANG || HIVE_COMPILER_GCC
-        #define HIVE_UNREACHABLE() __builtin_unreachable()
+        __builtin_unreachable();
     #else
-        #define HIVE_UNREACHABLE() ((void)0)
+        std::abort();
     #endif
+    }
 #endif
 
-#define HIVE_NOT_IMPLEMENTED() \
-    do { \
-        ::hive::HandleAssertionFailure(__FILE__, __LINE__, __func__, "NOT_IMPLEMENTED", "This functionality has not been implemented yet"); \
-        HIVE_DEBUG_BREAK(); \
-    } while(0)
+    // NotImplemented: Marks functionality that hasn't been implemented yet
+    [[noreturn]] inline void NotImplemented(
+        const std::source_location& loc = std::source_location::current())
+    {
+        HandleAssertionFailure(loc.file_name(), loc.line(), loc.function_name(), "Not implemented");
+        HIVE_DEBUG_BREAK();
+        std::abort();
+    }
+}
 
 

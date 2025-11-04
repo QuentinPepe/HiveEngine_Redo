@@ -56,7 +56,7 @@ namespace hive
         template<typename T>
         [[nodiscard]] LoggerId RegisterLogger(T *obj, void (T::*method)(const LogCategory &, LogSeverity, const char *))
         {
-            HIVE_ASSERT(m_Count + 1 < m_Loggers.size());
+            Assert(m_Count + 1 < m_Loggers.size(), "Too many loggers registered");
             m_Loggers[m_Count++] = {m_Count, LogCallback{obj, method}};
             return ++m_IdCount;
         }
@@ -83,7 +83,7 @@ namespace hive
 
     inline void LogGeneral(const LogCategory &cat, LogSeverity sev, const char *msg)
     {
-        HIVE_ASSERT(LogManager::IsInitialized());
+        Assert(LogManager::IsInitialized(), "LogManager not initialized");
         LogManager::GetInstance().Log(cat, sev, msg);
     }
 

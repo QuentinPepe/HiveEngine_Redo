@@ -56,7 +56,7 @@ namespace hive
 
         // Print severity label
         auto it = severityLabels.find(severity);
-        HIVE_ASSERT(it != severityLabels.end());
+        Assert(it != severityLabels.end(), "Invalid severity level");
 
         std::cout << it->second;
 
