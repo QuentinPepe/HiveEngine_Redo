@@ -1,5 +1,6 @@
 #include <hive/core/assert.h>
 
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 
@@ -15,7 +16,7 @@ namespace hive
 
     bool HandleAssertionFailure(
         const char* file,
-        int line,
+        std::uint_least32_t line,
         const char* function,
         const char* message)
     {

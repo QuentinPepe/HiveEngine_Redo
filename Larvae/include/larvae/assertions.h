@@ -6,23 +6,20 @@
 #include <cmath>
 #include <source_location>
 #include <utility>
+#include <cstdlib>
 
 namespace larvae
 {
-    class AssertionFailedException : public std::exception
-    {
-    public:
-        explicit AssertionFailedException(std::string message)
-            : message_{std::move(message)}
-        {
-        }
+    // Handler called when an assertion fails
+    // Returns true to continue test execution, false to abort
+    using AssertionFailureHandler = bool(*)(const char* message);
 
-        [[nodiscard]] const char* what() const noexcept override { return message_.c_str(); }
-        [[nodiscard]] const std::string& GetMessage() const { return message_; }
+    // Set custom assertion failure handler (nullptr = use default abort handler)
+    void SetAssertionFailureHandler(AssertionFailureHandler handler);
 
-    private:
-        std::string message_;
-    };
+    // Internal: Handle assertion failure
+    // May return if custom handler returns true, otherwise aborts
+    void HandleAssertionFailure(const std::string& message);
 
     std::string FormatAssertionMessage(
         const char* file,
@@ -38,8 +35,8 @@ namespace larvae
     {
         if (!condition)
         {
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "condition failed")};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "condition failed"));
         }
     }
 
@@ -49,8 +46,8 @@ namespace larvae
     {
         if (condition)
         {
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "condition should be false")};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "condition should be false"));
         }
     }
 
@@ -65,8 +62,8 @@ namespace larvae
             std::ostringstream actual_ss, expected_ss;
             actual_ss << val1;
             expected_ss << val2;
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "equality check", expected_ss.str(), actual_ss.str())};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "equality check", expected_ss.str(), actual_ss.str()));
         }
     }
 
@@ -80,8 +77,8 @@ namespace larvae
         {
             std::ostringstream ss;
             ss << val1;
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "inequality check", "values should differ", ss.str())};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "inequality check", "values should differ", ss.str()));
         }
     }
 
@@ -96,8 +93,8 @@ namespace larvae
             std::ostringstream actual_ss, expected_ss;
             actual_ss << val1;
             expected_ss << "< " << val2;
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "less than check", expected_ss.str(), actual_ss.str())};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "less than check", expected_ss.str(), actual_ss.str()));
         }
     }
 
@@ -112,8 +109,8 @@ namespace larvae
             std::ostringstream actual_ss, expected_ss;
             actual_ss << val1;
             expected_ss << "<= " << val2;
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "less equal check", expected_ss.str(), actual_ss.str())};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "less equal check", expected_ss.str(), actual_ss.str()));
         }
     }
 
@@ -128,8 +125,8 @@ namespace larvae
             std::ostringstream actual_ss, expected_ss;
             actual_ss << val1;
             expected_ss << "> " << val2;
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "greater than check", expected_ss.str(), actual_ss.str())};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "greater than check", expected_ss.str(), actual_ss.str()));
         }
     }
 
@@ -144,8 +141,8 @@ namespace larvae
             std::ostringstream actual_ss, expected_ss;
             actual_ss << val1;
             expected_ss << ">= " << val2;
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "greater equal check", expected_ss.str(), actual_ss.str())};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "greater equal check", expected_ss.str(), actual_ss.str()));
         }
     }
 
@@ -156,8 +153,8 @@ namespace larvae
     {
         if (ptr != nullptr)
         {
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "null check", "nullptr", "non-null pointer")};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "null check", "nullptr", "non-null pointer"));
         }
     }
 
@@ -168,8 +165,8 @@ namespace larvae
     {
         if (ptr == nullptr)
         {
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "not null check", "non-null pointer", "nullptr")};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "not null check", "non-null pointer", "nullptr"));
         }
     }
 
@@ -186,8 +183,8 @@ namespace larvae
             ss << "Expected: " << val2 << " ± " << epsilon << "\n";
             ss << "Actual: " << val1 << "\n";
             ss << "Difference: " << std::abs(val1 - val2);
-            throw AssertionFailedException{
-                FormatAssertionMessage(loc.file_name(), loc.line(), "near check", ss.str(), "")};
+            HandleAssertionFailure(
+                FormatAssertionMessage(loc.file_name(), loc.line(), "near check", ss.str(), ""));
         }
     }
 
@@ -214,9 +211,9 @@ namespace larvae
     {
         if (str1 != str2)
         {
-            throw AssertionFailedException{
+            HandleAssertionFailure(
                 FormatAssertionMessage(loc.file_name(), loc.line(), "string equality",
-                                       std::string{str2}, std::string{str1})};
+                                       std::string{str2}, std::string{str1}));
         }
     }
 
@@ -227,9 +224,9 @@ namespace larvae
     {
         if (str1 == str2)
         {
-            throw AssertionFailedException{
+            HandleAssertionFailure(
                 FormatAssertionMessage(loc.file_name(), loc.line(), "string inequality",
-                                       "different strings", std::string{str1})};
+                                       "different strings", std::string{str1}));
         }
     }
 }

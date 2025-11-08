@@ -54,12 +54,7 @@ namespace larvae
         auto wrapped_test = [test_body = std::move(test_body)]() {
             FixtureClass fixture;
             fixture.SetUp();
-            try {
-                test_body(fixture);
-            } catch (...) {
-                fixture.TearDown();
-                throw;
-            }
+            test_body(fixture);
             fixture.TearDown();
         };
 

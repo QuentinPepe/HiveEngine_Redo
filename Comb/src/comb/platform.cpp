@@ -1,5 +1,5 @@
-#include <hive/precomp.h>
-#include <hive/core/memory/platform.h>
+#include <comb/precomp.h>
+#include <comb/platform.h>
 
 // Platform-specific headers
 #if defined(_WIN32)
@@ -11,7 +11,7 @@
     #error "Unsupported platform"
 #endif
 
-namespace hive::memory
+namespace comb
 {
     size_t GetPageSize()
     {

@@ -1,10 +1,10 @@
 #include <larvae/larvae.h>
-#include <hive/core/memory/platform.h>
+#include <comb/platform.h>
 #include <cstring>
 
 namespace {
     auto test1 = larvae::RegisterTest("MemoryPlatform", "GetPageSizeReturnsValidValue", []() {
-        const auto page_size = hive::memory::GetPageSize();
+        const auto page_size = comb::GetPageSize();
 
         // Page size should be non-zero
         larvae::AssertGreaterThan(page_size, 0u);
@@ -18,22 +18,22 @@ namespace {
     });
 
     auto test2 = larvae::RegisterTest("MemoryPlatform", "AllocatePagesReturnsValidPointer", []() {
-        const auto page_size = hive::memory::GetPageSize();
-        void* ptr = hive::memory::AllocatePages(page_size);
+        const auto page_size = comb::GetPageSize();
+        void* ptr = comb::AllocatePages(page_size);
 
         larvae::AssertNotNull(ptr);
 
-        hive::memory::FreePages(ptr, page_size);
+        comb::FreePages(ptr, page_size);
     });
 
     auto test3 = larvae::RegisterTest("MemoryPlatform", "AllocatePagesReturnsNullOnZeroSize", []() {
-        void* ptr = hive::memory::AllocatePages(0);
+        void* ptr = comb::AllocatePages(0);
 
         // Some platforms might return nullptr for size 0
         // This is platform-dependent behavior
         if (ptr)
         {
-            hive::memory::FreePages(ptr, 0);
+            comb::FreePages(ptr, 0);
         }
 
         // Test passes regardless - we're just checking it doesn't crash
@@ -41,8 +41,8 @@ namespace {
     });
 
     auto test4 = larvae::RegisterTest("MemoryPlatform", "AllocatedMemoryIsReadable", []() {
-        const auto page_size = hive::memory::GetPageSize();
-        void* ptr = hive::memory::AllocatePages(page_size);
+        const auto page_size = comb::GetPageSize();
+        void* ptr = comb::AllocatePages(page_size);
 
         larvae::AssertNotNull(ptr);
 
@@ -54,12 +54,12 @@ namespace {
         // If we got here, reading succeeded
         larvae::AssertTrue(true);
 
-        hive::memory::FreePages(ptr, page_size);
+        comb::FreePages(ptr, page_size);
     });
 
     auto test5 = larvae::RegisterTest("MemoryPlatform", "AllocatedMemoryIsWritable", []() {
-        const auto page_size = hive::memory::GetPageSize();
-        void* ptr = hive::memory::AllocatePages(page_size);
+        const auto page_size = comb::GetPageSize();
+        void* ptr = comb::AllocatePages(page_size);
 
         larvae::AssertNotNull(ptr);
 
@@ -72,13 +72,13 @@ namespace {
         larvae::AssertEqual(byte_ptr[0], static_cast<unsigned char>(42));
         larvae::AssertEqual(byte_ptr[page_size - 1], static_cast<unsigned char>(99));
 
-        hive::memory::FreePages(ptr, page_size);
+        comb::FreePages(ptr, page_size);
     });
 
     auto test6 = larvae::RegisterTest("MemoryPlatform", "AllocateMultiplePages", []() {
-        const auto page_size = hive::memory::GetPageSize();
+        const auto page_size = comb::GetPageSize();
         const auto alloc_size = page_size * 4;
-        void* ptr = hive::memory::AllocatePages(alloc_size);
+        void* ptr = comb::AllocatePages(alloc_size);
 
         larvae::AssertNotNull(ptr);
 
@@ -97,25 +97,25 @@ namespace {
         larvae::AssertEqual(byte_ptr[page_size * 3], static_cast<unsigned char>(4));
         larvae::AssertEqual(byte_ptr[alloc_size - 1], static_cast<unsigned char>(5));
 
-        hive::memory::FreePages(ptr, alloc_size);
+        comb::FreePages(ptr, alloc_size);
     });
 
     auto test7 = larvae::RegisterTest("MemoryPlatform", "FreePagesWithNullptrIsSafe", []() {
-        const auto page_size = hive::memory::GetPageSize();
+        const auto page_size = comb::GetPageSize();
 
         // Should not crash
-        hive::memory::FreePages(nullptr, page_size);
-        hive::memory::FreePages(nullptr, 0);
+        comb::FreePages(nullptr, page_size);
+        comb::FreePages(nullptr, 0);
 
         larvae::AssertTrue(true);
     });
 
     auto test8 = larvae::RegisterTest("MemoryPlatform", "MultipleAllocationsAreIndependent", []() {
-        const auto page_size = hive::memory::GetPageSize();
+        const auto page_size = comb::GetPageSize();
 
-        void* ptr1 = hive::memory::AllocatePages(page_size);
-        void* ptr2 = hive::memory::AllocatePages(page_size);
-        void* ptr3 = hive::memory::AllocatePages(page_size);
+        void* ptr1 = comb::AllocatePages(page_size);
+        void* ptr2 = comb::AllocatePages(page_size);
+        void* ptr3 = comb::AllocatePages(page_size);
 
         larvae::AssertNotNull(ptr1);
         larvae::AssertNotNull(ptr2);
@@ -137,16 +137,16 @@ namespace {
         larvae::AssertEqual(static_cast<unsigned char*>(ptr3)[0], static_cast<unsigned char>(33));
 
         // Free in different order
-        hive::memory::FreePages(ptr2, page_size);
-        hive::memory::FreePages(ptr1, page_size);
-        hive::memory::FreePages(ptr3, page_size);
+        comb::FreePages(ptr2, page_size);
+        comb::FreePages(ptr1, page_size);
+        comb::FreePages(ptr3, page_size);
     });
 
     auto test9 = larvae::RegisterTest("MemoryPlatform", "LargeAllocation", []() {
-        const auto page_size = hive::memory::GetPageSize();
+        const auto page_size = comb::GetPageSize();
         const auto alloc_size = page_size * 256; // 1 MB if page size is 4 KB
 
-        void* ptr = hive::memory::AllocatePages(alloc_size);
+        void* ptr = comb::AllocatePages(alloc_size);
 
         larvae::AssertNotNull(ptr);
 
@@ -163,14 +163,14 @@ namespace {
             larvae::AssertEqual(byte_ptr[i], static_cast<unsigned char>(i / page_size));
         }
 
-        hive::memory::FreePages(ptr, alloc_size);
+        comb::FreePages(ptr, alloc_size);
     });
 
     auto test10 = larvae::RegisterTest("MemoryPlatform", "AllocateNonPageAlignedSize", []() {
-        const auto page_size = hive::memory::GetPageSize();
+        const auto page_size = comb::GetPageSize();
         const auto odd_size = page_size + 100; // Not aligned to page size
 
-        void* ptr = hive::memory::AllocatePages(odd_size);
+        void* ptr = comb::AllocatePages(odd_size);
 
         larvae::AssertNotNull(ptr);
 
@@ -182,14 +182,14 @@ namespace {
         larvae::AssertEqual(byte_ptr[0], static_cast<unsigned char>(1));
         larvae::AssertEqual(byte_ptr[odd_size - 1], static_cast<unsigned char>(2));
 
-        hive::memory::FreePages(ptr, odd_size);
+        comb::FreePages(ptr, odd_size);
     });
 
     auto test11 = larvae::RegisterTest("MemoryPlatform", "MemsetOnAllocatedPages", []() {
-        const auto page_size = hive::memory::GetPageSize();
+        const auto page_size = comb::GetPageSize();
         const auto alloc_size = page_size * 2;
 
-        void* ptr = hive::memory::AllocatePages(alloc_size);
+        void* ptr = comb::AllocatePages(alloc_size);
         larvae::AssertNotNull(ptr);
 
         // Fill with pattern
@@ -207,7 +207,7 @@ namespace {
 
         larvae::AssertTrue(true);
 
-        hive::memory::FreePages(ptr, alloc_size);
+        comb::FreePages(ptr, alloc_size);
     });
 
     class PlatformFixture : public larvae::TestFixture
@@ -215,15 +215,15 @@ namespace {
     public:
         void SetUp() override
         {
-            page_size = hive::memory::GetPageSize();
-            ptr1 = hive::memory::AllocatePages(page_size);
-            ptr2 = hive::memory::AllocatePages(page_size * 2);
+            page_size = comb::GetPageSize();
+            ptr1 = comb::AllocatePages(page_size);
+            ptr2 = comb::AllocatePages(page_size * 2);
         }
 
         void TearDown() override
         {
-            if (ptr1) hive::memory::FreePages(ptr1, page_size);
-            if (ptr2) hive::memory::FreePages(ptr2, page_size * 2);
+            if (ptr1) comb::FreePages(ptr1, page_size);
+            if (ptr2) comb::FreePages(ptr2, page_size * 2);
         }
 
         size_t page_size{0};
@@ -249,7 +249,7 @@ namespace {
     auto test13 = larvae::RegisterTestWithFixture<PlatformFixture>(
         "PlatformFixture", "PageSizeIsConsistent",
         [](PlatformFixture& f) {
-            const auto page_size2 = hive::memory::GetPageSize();
+            const auto page_size2 = comb::GetPageSize();
             larvae::AssertEqual(f.page_size, page_size2);
         });
 }

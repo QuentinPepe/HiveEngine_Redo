@@ -57,12 +57,13 @@
 
 #include <source_location>
 #include <type_traits>
+#include <cstdint>
 
 namespace hive
 {
     bool HandleAssertionFailure(
         const char* file,
-        int line,
+        std::uint_least32_t line,
         const char* function,
         const char* message = nullptr);
 

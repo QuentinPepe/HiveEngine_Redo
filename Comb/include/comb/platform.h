@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-namespace hive::memory
+namespace comb
 {
     /**
      * Get the system page size

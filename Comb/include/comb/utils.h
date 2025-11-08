@@ -4,8 +4,11 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <array>
+#include <algorithm>
+#include <concepts>
 
-namespace hive::memory
+namespace comb
 {
     /**
      * Check if a value is a power of 2
@@ -35,7 +38,7 @@ namespace hive::memory
      * @param alignment Alignment requirement (must be power of 2)
      * @return True if pointer is aligned, false otherwise
      */
-    constexpr bool IsAligned(const void* ptr, size_t alignment)
+    inline bool IsAligned(const void* ptr, size_t alignment)
     {
         return IsAligned(reinterpret_cast<uintptr_t>(ptr), alignment);
     }
@@ -113,5 +116,32 @@ namespace hive::memory
     inline size_t GetAlignmentPadding(const void* ptr, size_t alignment)
     {
         return GetAlignmentPadding(reinterpret_cast<uintptr_t>(ptr), alignment);
+    }
+
+    /**
+     * Create a constexpr array from variadic arguments
+     * All arguments must be of the same type
+     * @tparam T Element type
+     * @tparam Ts... Additional element types (must be same as T)
+     * @param n First element
+     * @param ns... Remaining elements
+     * @return constexpr array containing all elements
+     */
+    template<typename T, std::same_as<T>... Ts>
+    constexpr std::array<T, sizeof...(Ts) + 1> MakeArray(T n, Ts... ns)
+    {
+        return {n, ns...};
+    }
+
+    /**
+     * Check if a container is sorted in ascending order
+     * @tparam T Container type
+     * @param container Container to check
+     * @return True if sorted, false otherwise
+     */
+    template<typename T>
+    constexpr bool IsSorted(const T& container)
+    {
+        return std::is_sorted(std::begin(container), std::end(container));
     }
 }

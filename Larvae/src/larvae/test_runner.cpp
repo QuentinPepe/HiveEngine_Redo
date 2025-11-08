@@ -100,31 +100,42 @@ namespace larvae
 
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        try
-        {
-            test_info.func();
+        // Install custom assertion handler to capture failures
+        std::string assertion_error;
+        bool test_failed = false;
+
+        // Use a static variable to communicate between handler and test runner
+        static thread_local std::string* s_current_error = nullptr;
+        static thread_local bool* s_current_failed = nullptr;
+        s_current_error = &assertion_error;
+        s_current_failed = &test_failed;
+
+        SetAssertionFailureHandler([](const char* message) -> bool {
+            if (s_current_error && s_current_failed) {
+                *s_current_error = message;
+                *s_current_failed = true;
+            }
+            return true; // Return true to prevent abort and continue test execution
+        });
+
+        test_info.func();
+
+        // Restore default handler
+        SetAssertionFailureHandler(nullptr);
+        s_current_error = nullptr;
+        s_current_failed = nullptr;
+
+        if (test_failed) {
+            result.status = TestStatus::Failed;
+            result.error_message = assertion_error;
+        } else {
             result.status = TestStatus::Passed;
-        }
-        catch (const AssertionFailedException& e)
-        {
-            result.status = TestStatus::Failed;
-            result.error_message = e.GetMessage();
-        }
-        catch (const std::exception& e)
-        {
-            result.status = TestStatus::Failed;
-            result.error_message = std::string{"Unexpected exception: "} + e.what();
-        }
-        catch (...)
-        {
-            result.status = TestStatus::Failed;
-            result.error_message = "Unknown exception caught";
         }
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
             end_time - start_time);
-        result.duration_ms = duration.count() / 1000.0;
+        result.duration_ms = static_cast<double>(duration.count()) / 1000.0;
 
         if (result.status == TestStatus::Passed)
         {

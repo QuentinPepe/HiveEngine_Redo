@@ -7,6 +7,7 @@
 #include <array>
 #include <string>
 #include <utility>
+#include <fmt/format.h>
 
 namespace hive
 {
@@ -87,6 +88,37 @@ namespace hive
         LogManager::GetInstance().Log(cat, sev, msg);
     }
 
+    // Primary API: Formatted logging (modern {fmt})
+    // Use these by default - type-safe and efficient
+    template<typename... Args>
+    void LogTrace(const LogCategory &category, fmt::format_string<Args...> format, Args&&... args)
+    {
+        auto msg = fmt::format(format, std::forward<Args>(args)...);
+        LogGeneral(category, LogSeverity::TRACE, msg.c_str());
+    }
+
+    template<typename... Args>
+    void LogInfo(const LogCategory &category, fmt::format_string<Args...> format, Args&&... args)
+    {
+        auto msg = fmt::format(format, std::forward<Args>(args)...);
+        LogGeneral(category, LogSeverity::INFO, msg.c_str());
+    }
+
+    template<typename... Args>
+    void LogWarning(const LogCategory &category, fmt::format_string<Args...> format, Args&&... args)
+    {
+        auto msg = fmt::format(format, std::forward<Args>(args)...);
+        LogGeneral(category, LogSeverity::WARN, msg.c_str());
+    }
+
+    template<typename... Args>
+    void LogError(const LogCategory &category, fmt::format_string<Args...> format, Args&&... args)
+    {
+        auto msg = fmt::format(format, std::forward<Args>(args)...);
+        LogGeneral(category, LogSeverity::ERROR, msg.c_str());
+    }
+
+    // Overloads for simple strings (no formatting needed)
     inline void LogTrace(const LogCategory &category, const char *message)
     {
         LogGeneral(category, LogSeverity::TRACE, message);

@@ -1,6 +1,6 @@
 # Larvae - HiveEngine Testing Framework
 
-**Larvae** is HiveEngine's unit testing framework, designed to be lightweight, fast, and expressive.
+**Larvae** is HiveEngine's unit testing framework.
 
 ## Features
 
@@ -8,7 +8,7 @@
 - **Auto-registration**: Tests register themselves automatically
 - **Fixtures**: Support for setup/teardown
 - **Filtering**: Run subsets of tests with wildcards
-- **Modern C++20**: Uses `std::source_location`, `std::string_view`, ranges
+- **Benchmarking**: Integrated performance testing with statistics
 - **Cross-platform**: Works on Windows (MSVC), Linux (GCC), macOS (Clang)
 - **Integrated**: Designed specifically for HiveEngine
 

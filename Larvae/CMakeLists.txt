@@ -12,5 +12,8 @@ target_sources(larvae PRIVATE
     src/larvae/test_registry.cpp
     src/larvae/test_runner.cpp
     src/larvae/assertions.cpp
+    src/larvae/benchmark.cpp
+    src/larvae/benchmark_registry.cpp
+    src/larvae/benchmark_runner.cpp
     src/larvae/larvae.cpp
 )

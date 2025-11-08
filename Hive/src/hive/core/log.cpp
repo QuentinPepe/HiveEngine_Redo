@@ -2,7 +2,9 @@
 #include <hive/core/log.h>
 #include <hive/core/assert.h>
 
-#include <iostream>
+#include <fmt/core.h>
+#include <array>
+
 namespace hive
 {
     const LogCategory LogHiveRoot { "Hive" };
@@ -46,21 +48,26 @@ namespace hive
 
     void ConsoleLogger::Log(const LogCategory &category, LogSeverity severity, const char *message)
     {
-        //TODO use array instead for better performance
-        static const std::unordered_map<LogSeverity, const char*> severityLabels = {
+        struct SeverityLabel {
+            LogSeverity severity;
+            const char* label;
+        };
+
+        constexpr std::array<SeverityLabel, 4> severityLabels{{
             {LogSeverity::TRACE, "[TRACE] "},
             {LogSeverity::INFO,  "[INFO] "},
             {LogSeverity::WARN,  "[WARN] "},
             {LogSeverity::ERROR, "[ERROR] "}
-        };
+        }};
 
-        // Print severity label
-        auto it = severityLabels.find(severity);
-        Assert(it != severityLabels.end(), "Invalid severity level");
+        const char* label{"[UNKNOWN] "};
+        for (const auto& sl : severityLabels) {
+            if (sl.severity == severity) {
+                label = sl.label;
+                break;
+            }
+        }
 
-        std::cout << it->second;
-
-        // Print categories using STL
-        std::cout << category.GetFullPath() << " - " << message << std::endl;
+        fmt::print("{}{} - {}\n", label, category.GetFullPath(), message);
     }
 }
