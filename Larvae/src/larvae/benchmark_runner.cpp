@@ -112,13 +112,13 @@ namespace larvae
         if (bytes_processed > 0)
         {
             double seconds = static_cast<double>(median_time.count()) / 1e9;
-            result.bytes_per_second = bytes_processed / seconds;
+            result.bytes_per_second = static_cast<double>(bytes_processed) / seconds;
         }
 
         if (items_processed > 0)
         {
             double seconds = static_cast<double>(median_time.count()) / 1e9;
-            result.items_per_second = items_processed / seconds;
+            result.items_per_second = static_cast<double>(items_processed) / seconds;
         }
 
         return result;
